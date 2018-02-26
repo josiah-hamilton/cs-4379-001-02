@@ -2,10 +2,10 @@ CC=mpicc
 
 %.o:%.c
 	$(CC) $(CFLAGS) $< -o $@
-hwk1make: main
+hwk2make: main.c
 	#module load gnu openmpi # Module not found in PATH
-	$(CC) -o main main.c
+	$(CC) -o hwk2 main.c
 clean:
-	rm main
+	rm hwk2
 
 	
