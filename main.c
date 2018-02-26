@@ -15,20 +15,16 @@ void row_sums(int*,int*,int,int);
 int main(int argc, char** argv) {
     srand(time(NULL)); // seed clock for rand()
     int ranks=RANKS;
-    int rows=ROWS;
-    int cols=COLS;
-    int chunkrows=rows / ranks;
 
     int size;    // needed for sending # of processes to MPI
-    int myrank;
+    int rank;
     MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    int rank = myrank * CHUNKSIZE;
     int chunkbufcount= cols*chunkrows;
 
     // rank 0 generates matrix data and sums first chunk
-    if (myrank == 0) {
+    if (rank == 0) {
 
         MPI_Request request1,request2,request3,request4,request5,request6;
         MPI_Status  status1,status2,status3,status4,status5,status6;
@@ -69,71 +65,13 @@ int main(int argc, char** argv) {
         MPI_Wait(&request4,&status4);
         MPI_Wait(&request5,&status5);
         MPI_Wait(&request6,&status6);
-
-        //int results = open("results.txt", "w");
-        //if (results < 1) { return results; }
-        //int fd_status;
-        //for ( int i = 0; i < chunkrows; i++ ){
-        //    fd_status = fprintf(results,"%d\n", sums0[i]);
-        //    if (fd_status < 1) { return fd_status; }
-        //}
-        //for ( int i = 0; i < chunkrows; i++ ){
-        //    fd_status = fprintf(results,"%d\n", sums1[i]);
-        //    if (fd_status < 1) { return fd_status; }
-        //}
-        //for ( int i = 0; i < chunkrows; i++ ){
-        //    fd_status = fprintf(results,"%d\n", sums2[i]);
-        //    if (fd_status < 1) { return fd_status; }
-        //}
-        //for ( int i = 0; i < chunkrows; i++ ){
-        //    fd_status = fprintf(results,"%d\n", sums3[i]);
-        //    if (fd_status < 1) { return fd_status; }
-        //}
-        //fd_status = close(results);
-        //if (fd_status < 1) { return fd_status; }
+#ifdef DEBUG
+        // sleep stuff in here
+#endif
         
-        free(table);
-        free(sums0);
-        free(sums1);
-        free(sums2);
-        free(sums3);
+    } 
 
-    } else {
-
-        MPI_Request request,request2;
-        MPI_Status status,status2;
-
-        int *chunk = (int*) calloc(CHUNKSIZE * COLS,sizeof(int *));
-        int *sums  = (int*) calloc(CHUNKSIZE,sizeof(int));
-
-        MPI_Irecv(chunk,chunkbufcount,MPI_INT,0,myrank,MPI_COMM_WORLD,&request);
-        MPI_Wait(&request,&status);
-
-        row_sums(chunk,sums,chunkbufcount,cols);
-
-        MPI_Isend(sums,chunkrows,MPI_INT,0,myrank+3,MPI_COMM_WORLD,&request2);
-        MPI_Wait(&request2,&status2);
-
-        free(chunk);
-        free(sums);
-    }
-
-    //printf("%d: finish\n",myrank);
+    //printf("%d: finish\n",rank);
     return MPI_Finalize(); 
 }
 
-/**
- * Row-wise summation of a table
- * takes as its inputs a 1D array of integers, table
- * and the pointer to a summation array, sums
- * a buffer size bufsize, and a column count, cols
- * Returns by reference the sums of each element of a given row.
- */
-void row_sums(int *table, int *sums, int bufsize, int cols) {
-    for (int i = 0; i < bufsize/cols; i++) {
-        sums[i] = 0;
-        for (int j = 0; j < cols; j++) {
-            sums[i] += *(table + cols*i + j);
-        }
-    }
-}
