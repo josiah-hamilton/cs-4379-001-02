@@ -27,7 +27,15 @@ int main(int argc, char** argv) {
     MPI_Status status;
     //implement broadcasting
     int step;
-    for(step = 0; step < p, step*=2){
+
+    for(step = p, step >= 1; step = step >> 1) {
+        if(rank >= step)
+	    MPI_Send(&data, 1, MPI_Int, rank-step, rank-step, MPI_COMM_WORLD);
+	else if(rank >= step/2)
+	    MPI_Recv(&data, 1, MPI_Int, rank+step, rank, MPI_COMM_WORLD, &status);
+    }   
+
+    for(step = 1; step < p, step*=2){
         if(rank < step) {
             MPI_Send(&data, 1, MPI_Int, rank+step, rank+step, MPI_COMM_WORLD);
         } else if(rank < 2*step) {
