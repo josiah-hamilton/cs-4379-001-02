@@ -8,4 +8,3 @@ hwk2make: main.c
 clean:
 	rm hwk2
 
-	
