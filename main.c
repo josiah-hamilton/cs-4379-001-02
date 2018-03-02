@@ -32,32 +32,39 @@ int main(int argc, char** argv) {
     // BROAD RECEIVE
 
     for(step = ranks>>1; step >= 1; step = step >> 1) {
-        if(rank >= step) {
-#ifdef DEBUG
-            printf("%d: here0 %d, Send? = %d", rank, step, rank-step);
-#endif
-	        MPI_Send(&data, 1, MPI_INT, rank-step, rank-step, MPI_COMM_WORLD);
-        } else if(rank < step) { 
-#ifdef DEBUG
-            printf("%d: here0 %d, Recv? = %d\n", rank, step, rank+step);
-#endif
+        if(rank < step) { 
 	        MPI_Recv(&data, 1, MPI_INT, rank+step, rank+step, MPI_COMM_WORLD, &status);
-        }
+#ifdef DEBUG
+            printf("%d:\t here0 %d\t Recv? = %d\t Tag = %d\n", 
+                    rank, step, rank+step, rank+step);
+#endif
+        } else if (rank < 2*step) {
+	        MPI_Send(&data, 1, MPI_INT, rank-step, rank-step, MPI_COMM_WORLD);
+#ifdef DEBUG
+            printf("%d:\t here0 %d\t Send? = %d\t Tag = %d\n", 
+                    rank, step, rank-step, rank-step);
+#endif
+        } 
     }   
 
     // BROADCAST
+#ifdef DEBUG
+    printf("%d: Broadcast\n", rank);
+#endif
     
     for(step = 1; step < ranks; step*=2){
         if(rank < step) {
-#ifdef DEBUG
-            printf("%d: here0 %d, Send? = %d", rank, step, rank-step);
-#endif
             MPI_Send(&data, 1, MPI_INT, rank+step, rank+step, MPI_COMM_WORLD);
-        } else if(rank < 2*step) {
 #ifdef DEBUG
-            printf("%d: here0 %d, Recv? = %d\n", rank, step, rank+step);
+            //printf("%d:\t here0 %d\t Recv? = %d\t Tag = %d\n", 
+            //        rank, step, rank+step, rank+step);
 #endif
+        } else if(rank < 2*step) {
             MPI_Recv(&data, 1, MPI_INT, rank-step, rank, MPI_COMM_WORLD, &status);
+#ifdef DEBUG
+            //printf("%d:\t here0 %d\t Send? = %d\t Tag = %d\n", 
+            //        rank, step, rank-step, rank-step);
+#endif
         }
     }
 
