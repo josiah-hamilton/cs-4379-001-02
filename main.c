@@ -4,6 +4,7 @@
 #include<time.h>
 
 #define RANKS 8
+#define DEBUG
 
 int main(int argc, char** argv) {
     int ranks=RANKS;
@@ -28,18 +29,28 @@ int main(int argc, char** argv) {
     //implement broadcasting
     int step;
 
-    for(step = p, step >= 1; step = step >> 1) {
+    // BROAD RECEIVE
+
+    for(step = ranks-1; step >= 1; step = step >> 1) {
         if(rank >= step)
-	    MPI_Send(&data, 1, MPI_Int, rank-step, rank-step, MPI_COMM_WORLD);
+	    MPI_Send(&data, 1, MPI_INT, rank-step, rank-step, MPI_COMM_WORLD);
 	else if(rank >= step/2)
-	    MPI_Recv(&data, 1, MPI_Int, rank+step, rank, MPI_COMM_WORLD, &status);
+#ifdef DEBUG
+        printf("%d: here0 %d\n", rank, step);
+#endif
+	    MPI_Recv(&data, 1, MPI_INT, rank+step, rank, MPI_COMM_WORLD, &status);
     }   
 
-    for(step = 1; step < p, step*=2){
+    // BROADCAST
+    
+    for(step = 1; step < ranks; step*=2){
         if(rank < step) {
-            MPI_Send(&data, 1, MPI_Int, rank+step, rank+step, MPI_COMM_WORLD);
+            MPI_Send(&data, 1, MPI_INT, rank+step, rank+step, MPI_COMM_WORLD);
         } else if(rank < 2*step) {
-            MPI_Recv(&data, 1, MPI_Int, rank-step, rank, MPI_COMM_WORLD, &status);
+            MPI_Recv(&data, 1, MPI_INT, rank-step, rank, MPI_COMM_WORLD, &status);
+#ifdef DEBUG
+            printf("%d: here1 %d\n", rank, step);
+#endif
         }
     }
 
