@@ -10,4 +10,4 @@
 #$ -P quanah
 
 module load gnu openmpi
-mpirun --machinefile machinefile.$JOB_ID -np $NSLOTS ./main
+mpirun --machinefile machinefile.$JOB_ID -np $NSLOTS ./hwk2
